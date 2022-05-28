@@ -6,6 +6,7 @@ const Home = (props) => {
   const [walletAddress, setWalletAddress] = useState("");
   const [collectionAddress, setCollectionAddress] = useState("");
   const [NFTs, setNFTs] = useState([]);
+  const [fetchByCollection, setFetchByCollection] = useState(false);
 
   const walletInputHandler = (event) => {
     setWalletAddress(event.target.value);
@@ -15,6 +16,16 @@ const Home = (props) => {
     setCollectionAddress(event.target.value);
   }
 
+  const fetchByCollectionHandler = (event) => {
+    setFetchByCollection(event.target.checked);
+  }
+
+  const buttonHandler = () => {
+    if (fetchByCollection) {
+      fetchNFTsForCollection();
+    } else fetchNFTs();
+  }
+  
   const fetchNFTs = async () => {
     console.log("Fetching NFTs...");
     let nfts;
@@ -44,6 +55,26 @@ const Home = (props) => {
       console.log(nfts);
       setNFTs(nfts.ownedNfts);
     }
+  }
+
+  const fetchNFTsForCollection = async () => {
+    if (collectionAddress.length) {
+      const API_KEY = props.API_KEY;
+      const baseURL = `https://eth-mainnet.alchemyapi.io/v2/${API_KEY}/getNFTsForCollection/`;
+      const fetchURL = `${baseURL}?contractAddress=${collectionAddress}&withMetadata=${"true"}`;
+
+      var requestOptions = {
+        method: 'GET',
+        redirect: 'follow'
+      };
+
+      const nfts = await fetch(fetchURL, requestOptions).then(data => data.json())
+
+      if (nfts) {
+        console.log("NFTs in collection:", nfts)
+        setNFTs(nfts.nfts)
+      }
+    }
       
   }
 
@@ -51,8 +82,8 @@ const Home = (props) => {
     <div className="flex min-h-screen flex-col items-center justify-center py-2">
       <input onChange={walletInputHandler} value={walletAddress} type="text" name="" id="" placeholder='Wallet address' />
       <input onChange={collectionInputHandler} value={collectionAddress} type="text" name="" id="" placeholder='Collection address' />
-      <label htmlFor=""><input type="checkbox" name="" id="" /></label>
-      <button onClick={()=>{fetchNFTs()}} type="submit">Let's go!</button>
+      <label htmlFor=""><input onChange={fetchByCollectionHandler} type="checkbox" name="" id="" />Fetch By Collection</label>
+      <button onClick={buttonHandler} type="submit">Show the NFTs</button>
     </div>
   )
 }
