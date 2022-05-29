@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import { useState } from 'react'
+import { NFTCard } from './components/nftCard';
 
 const Home = (props) => {
   const [walletAddress, setWalletAddress] = useState("");
@@ -84,6 +85,11 @@ const Home = (props) => {
       <input onChange={collectionInputHandler} value={collectionAddress} type="text" name="" id="" placeholder='Collection address' />
       <label htmlFor=""><input onChange={fetchByCollectionHandler} type="checkbox" name="" id="" />Fetch By Collection</label>
       <button onClick={buttonHandler} type="submit">Show the NFTs</button>
+      <div>{ NFTs.length && NFTs.map(nft => {
+        return (
+          <NFTCard nft={nft} />
+        )
+      })}</div>
     </div>
   )
 }
