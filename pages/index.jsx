@@ -23,7 +23,7 @@ const Home = (props) => {
 
   const buttonHandler = () => {
     if (fetchByCollection) {
-      fetchNFTsForCollection();
+      fetchNFTsByCollection();
     } else fetchNFTs();
   }
   
@@ -58,7 +58,7 @@ const Home = (props) => {
     }
   }
 
-  const fetchNFTsForCollection = async () => {
+  const fetchNFTsByCollection = async () => {
     if (collectionAddress.length) {
       const API_KEY = props.API_KEY;
       const baseURL = `https://eth-mainnet.alchemyapi.io/v2/${API_KEY}/getNFTsForCollection/`;
@@ -80,16 +80,19 @@ const Home = (props) => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-2">
-      <input onChange={walletInputHandler} value={walletAddress} type="text" name="" id="" placeholder='Wallet address' />
-      <input onChange={collectionInputHandler} value={collectionAddress} type="text" name="" id="" placeholder='Collection address' />
-      <label htmlFor=""><input onChange={fetchByCollectionHandler} type="checkbox" name="" id="" />Fetch By Collection</label>
-      <button onClick={buttonHandler} type="submit">Show the NFTs</button>
-      <div>{ NFTs.length && NFTs.map(nft => {
+    <div className="flex flex-col items-center justify-center py-8 gap-y-3">
+      <div className="flex flex-col w-full justify-center items-center gap-y-2">
+        <input disabled={fetchByCollection} onChange={walletInputHandler} value={walletAddress} type="text" name="" id="" placeholder='Wallet address'  className="w-2/5 bg-slate-100 py-2 px-2 rounded-lg text-gray-800 focus:outline-blue-300 disabled:bg-slate-50 disabled:text-gray-50" />
+        <input onChange={collectionInputHandler} value={collectionAddress} type="text" name="" id="" placeholder='Collection address' className="w-2/5 bg-slate-100 py-2 px-2 rounded-lg text-gray-800 focus:outline-blue-300 disabled:bg-slate-50 disabled:text-gray-50" />
+        <label className="text-gray-600" htmlFor=""><input onChange={fetchByCollectionHandler} type="checkbox" name="" id="" className="mr-2" />Fetch By Collection</label>
+        <button onClick={buttonHandler} className={"disabled:bg-slate-500 text-white bg-blue-400 px-4 py-2 mt-3 rounded-sm w-1/5"}>Show the NFTs</button>
+      </div>
+      <div className='flex flex-wrap gap-y-12 mt-4 w-5/6 gap-x-2 justify-center'>
+        { NFTs.length && NFTs.map(nft => {
         return (
-          <NFTCard nft={nft} />
-        )
-      })}</div>
+          <NFTCard key={nft.id.tokenId} nft={nft} />
+        )})}
+      </div>
     </div>
   )
 }
