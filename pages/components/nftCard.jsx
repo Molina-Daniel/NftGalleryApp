@@ -4,7 +4,7 @@ const truncateContractAddress = (str) => {
   return `${str.substr(0, 5)}...${str.substr(str.length - 4)}`
 }
 
-export const NFTCard = ({nft}) => {
+const NFTCard = ({nft}) => {
 
   const copyAddressToClipboard = () => {
     navigator.clipboard.writeText(nft.contract.address);
@@ -45,3 +45,5 @@ export const NFTCard = ({nft}) => {
     </div>
   )
 }
+
+export default NFTCard;

@@ -1,5 +1,5 @@
 import { useState, useMemo, useReducer } from 'react'
-import { NFTCard } from './components/NFTCard'
+import NFTCard from './components/NFTCard'
 import Pagination from './components/Pagination'
 
 /**
@@ -116,7 +116,7 @@ const Home = (props) => {
         console.log(nfts);
       }
     }
-    
+
     if (state) {
       console.log("NFTs in collection:", state);
       setNFTs(state);
@@ -157,4 +157,4 @@ export async function getStaticProps() {
   return { props: { API_KEY: API_KEY } };
 }
 
-export default Home
+export default Home;
