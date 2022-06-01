@@ -1,18 +1,39 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { useState } from 'react'
-import { NFTCard } from '../components/NFTCard'
+import { useState, useMemo, useReducer } from 'react'
+import { NFTCard } from './components/NFTCard'
+import Pagination from './components/Pagination'
 
 /**
  * TODOs:
  * - Add fetch NFTs from Polygon network
+ * - Add spinner while fetching data
+ * - Add popup at mouse when copy contract address to clipboard
+ * - Add responsive design
+ * - Improve general look and feel
 */
+
+const reducer = (state, action) => {
+  if (action.type == 'add') {
+    const stateArray = [...state, action.data]
+    return stateArray.flat(1)
+  }
+}
 
 const Home = (props) => {
   const [walletAddress, setWalletAddress] = useState("");
   const [collectionAddress, setCollectionAddress] = useState("");
   const [NFTs, setNFTs] = useState([]);
   const [fetchByCollection, setFetchByCollection] = useState(false);
+  const [totalNFTs, setTotalNFTs] = useState(0);
+  const [state, dispatch] = useReducer(reducer, [])
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const PageSize = 100;
+
+  const currentNFTsData = useMemo(() => {
+    const firstPageIndex = (currentPage - 1) * PageSize;
+    const lastPageIndex = firstPageIndex + PageSize;
+    return NFTs.slice(firstPageIndex, lastPageIndex);
+  }, [currentPage, NFTs, state]);
 
   const walletInputHandler = (event) => {
     setWalletAddress(event.target.value);
@@ -64,24 +85,43 @@ const Home = (props) => {
   }
 
   const fetchNFTsByCollection = async () => {
-    if (collectionAddress.length) {
-      const API_KEY = props.API_KEY;
-      const baseURL = `https://eth-mainnet.alchemyapi.io/v2/${API_KEY}/getNFTsForCollection/`;
-      const fetchURL = `${baseURL}?contractAddress=${collectionAddress}&withMetadata=${"true"}`;
+    if (collectionAddress.length) { 
+      async function callGetNFTsForCollectionOnce(startToken = "") {
+        const API_KEY = props.API_KEY;
+        const baseURL = `https://eth-mainnet.alchemyapi.io/v2/${API_KEY}/getNFTsForCollection/`;
+        const fetchURL = `${baseURL}?contractAddress=${collectionAddress}&withMetadata=${"true"}&startToken=${startToken}`;
+        const requestOptions = {method: 'GET', redirect: 'follow'};
+        const nfts = await fetch(fetchURL, requestOptions).then(data => data.json())
+        return nfts;
+      }
 
-      var requestOptions = {
-        method: 'GET',
-        redirect: 'follow'
-      };
+      let startToken = ''
+      let hasNextPage = true
+      let totalNftsFound = 0
 
-      const nfts = await fetch(fetchURL, requestOptions).then(data => data.json())
+      while (hasNextPage) {
+        const { nfts, nextToken } = await callGetNFTsForCollectionOnce(
+          startToken
+        );
 
-      if (nfts) {
-        console.log("NFTs in collection:", nfts)
-        setNFTs(nfts.nfts)
+        if (!nextToken) {
+          // When nextToken is not present, then there are no more NFTs to fetch.
+          hasNextPage = false;
+        }
+
+        startToken = nextToken;
+        totalNftsFound += nfts.length;
+        setTotalNFTs(totalNftsFound);
+        dispatch({type: 'add', data: nfts})
+        console.log(nfts);
       }
     }
-      
+    
+    if (state) {
+      console.log("NFTs in collection:", state);
+      setNFTs(state);
+      console.log(state);
+    }
   }
 
   return (
@@ -93,11 +133,20 @@ const Home = (props) => {
         <button onClick={buttonHandler} className={"disabled:bg-slate-500 text-white bg-blue-400 px-4 py-2 mt-3 rounded-sm w-1/5"}>Show the NFTs</button>
       </div>
       <div className='flex flex-wrap gap-y-12 mt-4 w-5/6 gap-x-2 justify-center'>
-        { NFTs.length && NFTs.map(nft => {
+        { NFTs.length > 0 && currentNFTsData.map(nft => {
         return (
           <NFTCard key={nft.id.tokenId} nft={nft} />
         )})}
       </div>
+      { NFTs.length > 0 && (
+        <Pagination
+          className="w-full justify-center"
+          currentPage={currentPage}
+          totalCount={totalNFTs}
+          pageSize={PageSize}
+          onPageChange={page => setCurrentPage(page)}
+        />
+      )}
     </div>
   )
 }
