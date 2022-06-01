@@ -1,12 +1,12 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import { useState } from 'react'
-import { NFTCard } from './components/nftCard';
+import { NFTCard } from '../components/NFTCard'
 
 /**
  * TODOs:
  * - Add fetch NFTs from Polygon network
-*/ 
+*/
 
 const Home = (props) => {
   const [walletAddress, setWalletAddress] = useState("");

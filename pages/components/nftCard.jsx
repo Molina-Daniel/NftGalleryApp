@@ -1,5 +1,9 @@
 import { DuplicateIcon } from '@heroicons/react/solid';
 
+const truncateContractAddress = (str) => {
+  return `${str.substr(0, 5)}...${str.substr(str.length - 4)}`
+}
+
 export const NFTCard = ({nft}) => {
 
   const copyAddressToClipboard = () => {
@@ -14,13 +18,12 @@ export const NFTCard = ({nft}) => {
 
       <div className="flex flex-col y-gap-2 px-2 py-3 bg-slate-100 rounded-b-md h-110">
         <div>
-          <h2 className="text-xl text-gray-800">{ nft.title }</h2>
+          <h2 className="text-xl text-gray-800">{nft.title}</h2>
           <p className="text-gray-600">{nft.id.tokenId.substr(nft.id.tokenId.length - 4)}</p>
           <p className="text-gray-600 cursor-pointer" onClick={copyAddressToClipboard}>
-            {`${nft.contract.address.substr(0, 4)}...
-            ${nft.contract.address.substr(nft.contract.address.length - 4)}`}
+            {truncateContractAddress(nft.contract.address)}
             <DuplicateIcon
-              className="h-4 pl-1 cursor-pointer"
+              className="h-4 pl-1 cursor-pointer inline"
               onClick={copyAddressToClipboard}
             />
           </p>
