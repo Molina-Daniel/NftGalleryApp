@@ -1,5 +1,5 @@
 import classnames from 'classnames';
-import { usePagination, DOTS } from '../customHooks/usePagination';
+import usePagination, { DOTS } from '../customHooks/usePagination';
 import styles from './Pagination.module.css';
 
 const Pagination = (props) => {
