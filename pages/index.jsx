@@ -1,6 +1,6 @@
-import { useState, useMemo, useReducer } from 'react'
-import NFTCard from './components/nftCard'
-import Pagination from './components/Pagination'
+import { useState, useMemo, useReducer } from 'react';
+import NFTCard from '../components/NFTCard';
+import Pagination from '../components/Pagination';
 
 /**
  * TODOs:
