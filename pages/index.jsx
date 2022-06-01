@@ -1,5 +1,5 @@
 import { useState, useMemo, useReducer } from 'react'
-import NFTCard from './components/NFTCard'
+import NFTCard from './components/nftCard'
 import Pagination from './components/Pagination'
 
 /**
