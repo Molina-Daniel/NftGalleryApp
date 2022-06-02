@@ -12,9 +12,12 @@ import Pagination from '../components/Pagination';
 */
 
 const reducer = (state, action) => {
-  if (action.type == 'add') {
-    const stateArray = [...state, action.data]
-    return stateArray.flat(1)
+  switch (action.type) {
+    case 'add':
+      const stateArray = [...state, action.data];
+      return stateArray.flat(1);
+    case 'clean':
+      return [];
   }
 }
 
@@ -24,16 +27,10 @@ const Home = (props) => {
   const [NFTs, setNFTs] = useState([]);
   const [fetchByCollection, setFetchByCollection] = useState(false);
   const [totalNFTs, setTotalNFTs] = useState(0);
-  const [state, dispatch] = useReducer(reducer, [])
+  const [state, dispatch] = useReducer(reducer, []);
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const PageSize = 100;
-
-  const currentNFTsData = useMemo(() => {
-    const firstPageIndex = (currentPage - 1) * PageSize;
-    const lastPageIndex = firstPageIndex + PageSize;
-    return NFTs.slice(firstPageIndex, lastPageIndex);
-  }, [currentPage, NFTs, state]);
 
   const walletInputHandler = (event) => {
     setWalletAddress(event.target.value);
@@ -54,7 +51,13 @@ const Home = (props) => {
   }
   
   const fetchNFTs = async () => {
-    console.log("Fetching NFTs...");
+    // Clean data
+    setNFTs([]);
+    setTotalNFTs(0);
+    setCurrentPage(1);
+    dispatch({type: 'clean', data: []});
+
+    // Fetch NFTs
     let nfts;
     const API_KEY = props.API_KEY;
     const baseURL = `https://eth-mainnet.alchemyapi.io/v2/${API_KEY}/getNFTs/`;
@@ -66,32 +69,34 @@ const Home = (props) => {
       };
       
       const fetchURL = `${baseURL}?owner=${walletAddress}`;
-      console.log("Fetch URL:", fetchURL);
 
       nfts = await fetch(fetchURL, requestOptions)
-      .then(data => data.json());
+      .then(data => data.json()).catch(error => console.log('error', error));
+      dispatch({type: 'add', data: nfts.ownedNfts});
 
     } else {
-      console.log("Fetching NFTs from collection...");
       const fetchURL = `${baseURL}?owner=${walletAddress}&contractAddresses%5B%5D=${collectionAddress}`;
       nfts = await fetch(fetchURL, requestOptions)
-      .then(data => data.json());
-    }
-
-    if (nfts) {
-      console.log(nfts);
-      setNFTs(nfts.ownedNfts);
+      .then(data => data.json()).catch(error => console.log('error', error));
+      dispatch({type: 'add', data: nfts.ownedNfts});
     }
   }
 
   const fetchNFTsByCollection = async () => {
     if (collectionAddress.length) { 
+      // Clean data
+      setNFTs([]);
+      setTotalNFTs(0);
+      setCurrentPage(1);
+      dispatch({type: 'clean', data: []});
+
+      // Fetch NFTs
       async function callGetNFTsForCollectionOnce(startToken = "") {
         const API_KEY = props.API_KEY;
         const baseURL = `https://eth-mainnet.alchemyapi.io/v2/${API_KEY}/getNFTsForCollection/`;
         const fetchURL = `${baseURL}?contractAddress=${collectionAddress}&withMetadata=${"true"}&startToken=${startToken}`;
         const requestOptions = {method: 'GET', redirect: 'follow'};
-        const nfts = await fetch(fetchURL, requestOptions).then(data => data.json())
+        const nfts = await fetch(fetchURL, requestOptions).then(data => data.json()).catch(error => console.log('error', error));
         return nfts;
       }
 
@@ -100,9 +105,7 @@ const Home = (props) => {
       let totalNftsFound = 0
 
       while (hasNextPage) {
-        const { nfts, nextToken } = await callGetNFTsForCollectionOnce(
-          startToken
-        );
+        const { nfts, nextToken } = await callGetNFTsForCollectionOnce(startToken);
 
         if (!nextToken) {
           // When nextToken is not present, then there are no more NFTs to fetch.
@@ -113,16 +116,17 @@ const Home = (props) => {
         totalNftsFound += nfts.length;
         setTotalNFTs(totalNftsFound);
         dispatch({type: 'add', data: nfts})
-        console.log(nfts);
       }
     }
-
-    if (state) {
-      console.log("NFTs in collection:", state);
-      setNFTs(state);
-      console.log(state);
-    }
   }
+
+  const currentNFTsData = useMemo(() => {
+    console.log("NFTs in state:", state);
+    setNFTs(state);
+    const firstPageIndex = (currentPage - 1) * PageSize;
+    const lastPageIndex = firstPageIndex + PageSize;
+    return NFTs.slice(firstPageIndex, lastPageIndex);
+  }, [currentPage, state, NFTs]);
 
   return (
     <div className="flex flex-col items-center justify-center py-8 gap-y-3">
@@ -133,7 +137,7 @@ const Home = (props) => {
         <button onClick={buttonHandler} className={"disabled:bg-slate-500 text-white bg-blue-400 px-4 py-2 mt-3 rounded-sm w-1/5"}>Show the NFTs</button>
       </div>
       <div className='flex flex-wrap gap-y-12 mt-4 w-5/6 gap-x-2 justify-center'>
-        { NFTs.length > 0 && currentNFTsData.map(nft => {
+        { NFTs.length > 0 && currentNFTsData.map((nft) => {
         return (
           <NFTCard key={nft.id.tokenId} nft={nft} />
         )})}
